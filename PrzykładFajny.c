@@ -9,7 +9,6 @@ main()
         int m;
 
         int nowyint=0;
-        int nowyint=0;
 
         printf("\n Podaj pierwsze slowo: ");
         scanf("%s",slowo1);
