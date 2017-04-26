@@ -8,7 +8,8 @@ main()
         char slowo1[10],slowo2[10],sloo3[100];
         int m;
 
-        int jpII;
+        int nowyint=0;
+        int nowyint=0;
 
         printf("\n Podaj pierwsze slowo: ");
         scanf("%s",slowo1);
