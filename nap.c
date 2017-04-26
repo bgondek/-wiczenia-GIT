@@ -6,5 +6,6 @@
    const const char *napis2 = "world";
    strcat(napis1, napis2);
    puts(napis1);
+   //hello world
    return 0;
  }
