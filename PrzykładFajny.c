@@ -5,7 +5,7 @@
 #include <string.h>
 main()
 {
-        char slowo1[10],slowo2[10],slowo3[100];
+        char slowo1[10],slowo2[10],sloo3[100];
         int m;
         printf("\n Podaj pierwsze slowo: ");
         scanf("%s",slowo1);
