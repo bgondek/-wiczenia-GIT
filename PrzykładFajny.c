@@ -1,8 +1,9 @@
 
-// Kopiowanie ³añcuchów
+// Kopiowanie Â³aÃ±cuchÃ³w
 #include <stdio.h>
 #include <conio.h>
 #include <string.h>
+#include <stdlib.h>
 main()
 {
         char slowo1[10],slowo2[10],sloo3[100];
